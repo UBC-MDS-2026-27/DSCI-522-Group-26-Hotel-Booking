@@ -70,6 +70,13 @@ uv run quarto render analysis/main_analysis.qmd --to html
 
 The rendered report is written to `analysis/main_analysis.html`. Rendering executes the Python code chunks, downloads the dataset from Kaggle using `kagglehub`, and creates the raw and processed CSV files. An internet connection is required for the initial dataset download.
 
+To render the PDF version as well, you also need a LaTeX distribution, which `uv` does not install. The simplest option is TinyTeX via Quarto:
+
+```powershell
+quarto install tinytex
+uv run quarto render analysis/main_analysis.qmd --to pdf
+```
+
 In Positron, select the project's `.venv` Python environment when running or rendering the report.
 
 ## Dataset source
