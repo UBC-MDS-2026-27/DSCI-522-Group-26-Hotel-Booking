@@ -1,6 +1,17 @@
-# DSCI 522: Hotel Booking Cancellation Prediction
+# Hotel Booking Cancellation Prediction
 
 This project analyzes hotel booking data and develops a baseline model to predict whether a reservation will be cancelled. The goal is to understand cancellation patterns and assess how well booking information can identify bookings at higher risk of cancellation.
+
+## Authors
+
+- Trung Nghia Vo
+- Misha Shen
+- Nathan Li
+- Anushka Seth
+
+## Summary
+
+This project asks whether hotel-booking information available at reservation time can predict whether a booking will be cancelled. We compare a majority-class baseline with logistic regression and evaluate both on a held-out test set. Logistic regression performs much better at ranking and identifying cancellations, and a lower decision threshold catches more cancellations while producing more false alarms. These findings could help hotels direct cancellation-risk follow-up more effectively, but the best threshold depends on hotel-specific costs and must be validated on future and external bookings.
 
 ## Project overview
 
@@ -57,20 +68,35 @@ These metrics are the results currently documented in the report and may change 
 
 The raw and processed CSV files are created by the analysis when it is rendered.
 
-## Setup and rendering
+## How to run the analysis
 
-The project uses Python 3.14.7 and `uv` for Python dependency management. Install [Quarto](https://quarto.org/docs/get-started/) separately; it is the document renderer.
+1. Install Git, Python 3.14.7, `uv`, and [Quarto](https://quarto.org/docs/get-started/).
+2. Clone the repository and enter it:
 
-From the repository root, synchronize the Python environment and render the HTML report:
+   ```powershell
+   git clone https://github.com/UBC-MDS-2026-27/DSCI-522-Group-26-Hotel-Booking.git
+   cd DSCI-522-Group-26-Hotel-Booking
+   ```
 
-```powershell
-uv sync
-uv run quarto render analysis/main_analysis.qmd --to html
-```
+3. From the repository root, create or update the project environment and install the dependencies:
 
-The rendered report is written to `analysis/main_analysis.html`. Rendering executes the Python code chunks, downloads the dataset from Kaggle using `kagglehub`, and creates the raw and processed CSV files. An internet connection is required for the initial dataset download.
+   ```powershell
+   uv sync
+   ```
 
-In Positron, select the project's `.venv` Python environment when running or rendering the report.
+4. Render the main report:
+
+   ```powershell
+   uv run quarto render analysis/main_analysis.qmd --to html
+   ```
+
+The rendered report is written to `analysis/main_analysis.html`. Rendering executes the Python code chunks, downloads the source dataset with `kagglehub`, and creates `data/raw/hotel_bookings.csv` and `data/processed/hotel_bookings_processed.csv`. An internet connection is required for the initial dataset download.
+
+In an editor such as Positron or Visual Studio Code, select the `.venv` Python environment created by `uv` if you run the notebook or Python code interactively.
+
+## Dependencies
+
+The Python dependencies are listed in [`pyproject.toml`](pyproject.toml). The project uses Python 3.14.7 and `uv`; Quarto is required to render the report. The analysis dependencies include `kagglehub`, `pandas`, `numpy`, `scipy`, `matplotlib`, `seaborn`, `scikit-learn`, and `jupyter`. Quarto and `uv` are external tools rather than Python packages in `pyproject.toml`.
 
 ## Dataset source
 
@@ -83,6 +109,17 @@ The data is obtained from the [Hotel Booking Demand dataset on Kaggle](https://w
 - Duplicate records may occur in both the training and test sets, which could make evaluation scores optimistic.
 - The dataset covers two hotels and a limited time period. A random split may not represent performance on future bookings or at other hotels.
 
-## Authors
+## Licenses
 
-Trung Nghia Vo, Misha Shen, Nathan Li, and Anushka Seth.
+- The original project code is licensed under the [MIT License](LICENSE.md).
+- The original report, figures, tables, and rendered report content are licensed under the [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License](LICENSE.md) (CC BY-NC-ND 4.0).
+- Embedded report code remains under the MIT License.
+- Third-party software and data retain their respective licenses.
+
+## AI use statement
+
+Generative AI was not used in creation of this report.
+
+No instruction file such as `CLAUDE.md` or `.github/copilot-instructions.md` is currently committed to this repository. Example prompts used during development include:
+
+-

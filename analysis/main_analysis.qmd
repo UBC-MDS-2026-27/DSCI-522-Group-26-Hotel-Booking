@@ -1,5 +1,5 @@
 ---
-title: "DSCI-522-Group-26-Hotel-Booking"
+title: "Predicting Hotel Booking Cancellations"
 author: Trung Nghia Vo, Misha Shen, Nathan Li, Anushka Seth
 date: 2026-11-19
 format:
@@ -49,6 +49,18 @@ from sklearn.metrics import (
     RocCurveDisplay,
 )
 ```
+
+# Summary
+
+This project asked whether information known when a hotel booking is made can predict whether that booking will be cancelled. Using 119,390 bookings from two hotel types, the analysis found that logistic regression ranked cancellations substantially better than a majority-class baseline and could identify more cancellations than the baseline at the final held-out evaluation. The hotel could therefore use the model to prioritize bookings for cancellation-risk follow-up, while accepting a trade-off between catching cancellations and contacting bookings that remain active. The main limitations are that the study covers two hotels and a limited period, includes potentially duplicate records, uses a random rather than time-based test split, and chooses a threshold for equal precision and recall rather than hotel-specific costs.
+
+# Introduction
+
+Hotel cancellations create uncertainty for room inventory, staffing, and revenue management. When a booking is cancelled after an inventory decision or guest-arrival plan has been made, the hotel may lose a room opportunity or spend resources on guests who are unlikely to cancel. A useful cancellation-prediction model could flag high-risk reservations for targeted communication, revised deposit or payment policies, or a carefully managed overbooking strategy. The value of such a model depends on both its ability to rank bookings by risk and the consequences of any intervention, because not every hotel action is appropriate for every false alarm.
+
+This report answers the following question: **Can booking information available at reservation time predict whether a hotel booking will be cancelled, and how does changing the decision threshold affect the usefulness of the prediction?** The question is actionable if the response variable is available for past bookings and the predictors are available before cancellation occurs. It is measurable with the available data because the response is a binary cancellation indicator and the predictors describe individual reservations.
+
+The Hotel Booking Demand dataset was originally published by Antonio, Almeida, and Nunes and is publicly distributed through Kaggle [1,2]. Each row represents one booking made for a city hotel or resort hotel. The original source contains 119,390 rows and variables describing booking timing, length of stay, guest composition, deposit and market information, previous cancellations, and customer characteristics [1,2]. The variables used in this analysis describe information available at or near the booking stage, while the following variables were excluded: reservation status and reservation status date reveal the final outcome; assigned room type, booking changes, and days in waiting list may reflect events after the initial booking. The target variable is whether the booking was cancelled, coded as 1 for cancellation and 0 for no cancellation. The target supports binary classification and is not evenly balanced: 44,224 bookings, or 37.0%, were cancelled. These features and the target are sufficient to evaluate whether past patterns can predict cancellation in a held-out booking sample.
 
 # Methods
 ## Overview of the analysis
@@ -335,6 +347,14 @@ fig.tight_layout()
 plt.show()
 ```
 
+**Figure 1. Training-set cancellation balance.** The plot compares the number and percentage of cancelled and not-cancelled bookings in the 80% training partition.
+
+**Figure 2. Cancellation rate by booking lead time.** The bars show the observed cancellation rate within each lead-time interval.
+
+**Figure 3. Cancellation rate by deposit type.** The bars compare observed cancellation rates across deposit categories.
+
+**Figure 4. Arrival-month cancellation pattern by hotel type.** The heatmap shows cancellation rates for each arrival month in both hotel categories.
+
 ### Models
 We compared two models:
 
@@ -401,6 +421,8 @@ fig.tight_layout()
 plt.show()
 ```
 
+**Figure 5. Training cross-validation performance.** The bars compare average precision and F1 across the five training folds for the baseline and logistic regression.
+
 ### Model Selection
 ```{python}
 # Selection uses cross-validation only; the test set has not been touched yet.
@@ -464,6 +486,7 @@ fig.tight_layout()
 plt.show()
 ```
 
+**Figure 6. Precision-recall trade-off across decision thresholds.** The plot uses out-of-fold training predictions, and the vertical marker shows the threshold selected by training F1.
 
 ### Final evaluation (held-out test set, used once)
 ```{python}
@@ -494,6 +517,10 @@ Table 3. Final results on the held-out test set
 
 # Results
 
+Figures 1 through 4 summarize the training-set cancellation patterns that motivated the modelling analysis. Figure 1 establishes the class imbalance, while Figures 2 through 4 show how cancellation rates vary by lead time, deposit type, arrival month, and hotel type. Table 1 and Figure 5 compare the model candidates, and Table 2 and Figure 6 describe the threshold trade-off before the final held-out evaluation in Table 3.
+
+The main finding is that booking attributes can support useful cancellation-risk ranking even though the majority-class baseline has misleadingly high accuracy. The held-out results show that the selected logistic regression model outperforms the baseline across the threshold-dependent and threshold-independent metrics, and that lowering the decision threshold changes the balance between missed cancellations and false alarms.
+
 ## Model comparison
 Table 1 shows the 5-fold cross-validation results on the training set. The baseline reaches 63.0% accuracy only by predicting that no booking cancels, so its precision, recall and F1 are all 0, its ROC-AUC is 0.500 (no discrimination) and its AP of 0.370 equals the cancellation rate. Logistic regression is far better on every measure, with an AP of 0.868, a ROC-AUC of 0.908 and an F1 of 0.749. Because AP was our selection metric, logistic regression was selected as the final model.
 
@@ -509,9 +536,29 @@ The best model is **logistic regression with a decision threshold of 0.35**. It 
 
 # Discussion
 
+These results answer the stated question by showing that information available at booking time can identify likely cancellations, and that the useful threshold depends on the hotel's operational priorities. The findings are consistent with the training patterns in Figures 1 through 4, where cancellation frequency varies across booking lead time, deposit type, and temporal or hotel characteristics. It was reasonable to expect some ranking advantage over the baseline because cancellation behavior differs across these booking attributes, although the size of the difference at held-out evaluation was favorable.
+
+The real-world meaning is that a hotel could use the model to rank reservations by cancellation risk rather than making a binary decision about every booking. At the 0.5 threshold, the model catches fewer cancellations but is more certain that a flagged booking is likely to cancel. At 0.35, it catches more cancellations but also flags more bookings that remain active. This makes the threshold decision a business question: the hotel should prefer the lower threshold if a missed cancellation is more costly, and the higher threshold if unnecessary intervention or a false alarm is more costly.
+
 ## Limitations
 
 - Only one model besides the baseline was compared, so we cannot say logistic regression is the best possible model. Logistic regression assumes linear effects on the log-odds and may miss interactions between features (for example, lead time and deposit type). A tree-based model such as gradient boosting is the natural next step.
 - The threshold was chosen to maximize F1, which is an assumption of equal importance for precision and recall, not a cost derived from the hotel's business.
 - The dataset contains duplicate rows, and copies may appear in both the training and test sets, so the scores may be slightly optimistic.
 - The data come from two hotels over a limited time period, and we used a random split rather than a time-based split. Performance on future bookings, or at other hotels, may be lower.
+
+If deployed, the model could affect guest communication, staffing, inventory control, and revenue-management decisions. At a lower threshold, a hotel may contact more at-risk guests or hold inventory more conservatively, but it will also spend resources on bookings that would have remained active. A higher threshold reduces this false-alert burden but misses more cancellations. The appropriate operating point should therefore be based on documented cancellation costs and the cost of intervention, rather than F1 alone [4,5].
+
+Future work could compare time-based validation with the random split, repeat the analysis after carefully removing duplicate records, and test nonlinear or cost-sensitive models. It could also estimate expected profit or room opportunity cost for each threshold, add pricing and inventory information, and evaluate whether the model remains accurate for a later period or a hotel outside this dataset [1,3,5].
+
+# References
+
+[1] Antonio, N., Almeida, A., & Nunes, L. (2019). Hotel booking demand datasets. *Data in Brief, 22*, 41-49. https://doi.org/10.1016/j.dib.2019.01.003
+
+[2] Mostipak, J. (2020). Hotel booking demand. Kaggle. https://www.kaggle.com/datasets/jessemostipak/hotel-booking-demand
+
+[3] Scikit-learn developers. (n.d.). Cross-validation: evaluating estimator performance. https://scikit-learn.org/stable/modules/cross_validation.html
+
+[4] Scikit-learn developers. (n.d.). Logistic regression. https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
+
+[5] Hastie, T., Tibshirani, R., & Friedman, J. (2009). *The Elements of Statistical Learning: Data Mining, Inference, and Prediction* (2nd ed.). Springer. https://doi.org/10.1007/978-0-387-84858-7
