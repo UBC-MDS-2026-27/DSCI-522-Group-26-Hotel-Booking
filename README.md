@@ -120,6 +120,4 @@ The data is obtained from the [Hotel Booking Demand dataset on Kaggle](https://w
 
 Generative AI was not used in creation of this report.
 
-No instruction file such as `CLAUDE.md` or `.github/copilot-instructions.md` is currently committed to this repository. Example prompts used during development include:
-
--
+No instruction file such as `CLAUDE.md` or `.github/copilot-instructions.md` is currently committed to this repository.
