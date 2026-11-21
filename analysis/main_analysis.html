@@ -9,7 +9,7 @@
 <meta name="author" content="Trung Nghia Vo, Misha Shen, Nathan Li, Anushka Seth">
 <meta name="dcterms.date" content="2026-11-19">
 
-<title>DSCI-522-Group-26-Hotel-Booking</title>
+<title>Predicting Hotel Booking Cancellations</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -76,7 +76,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="main_analysis_files/libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="main_analysis_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="main_analysis_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="main_analysis_files/libs/bootstrap/bootstrap-215b371544c282197b31c8aa00ce3677.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="main_analysis_files/libs/bootstrap/bootstrap-917079515d91bccb85b543faf8aa8bb6.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
 
 <script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
@@ -92,7 +92,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#methods" id="toc-methods" class="nav-link active" data-scroll-target="#methods">Methods</a>
+  <li><a href="#summary" id="toc-summary" class="nav-link active" data-scroll-target="#summary">Summary</a></li>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#methods" id="toc-methods" class="nav-link" data-scroll-target="#methods">Methods</a>
   <ul class="collapse">
   <li><a href="#overview-of-the-analysis" id="toc-overview-of-the-analysis" class="nav-link" data-scroll-target="#overview-of-the-analysis">Overview of the analysis</a></li>
   <li><a href="#evaluation-metrics" id="toc-evaluation-metrics" class="nav-link" data-scroll-target="#evaluation-metrics">Evaluation metrics</a></li>
@@ -122,6 +124,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#limitations" id="toc-limitations" class="nav-link" data-scroll-target="#limitations">Limitations</a></li>
   </ul></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   </ul>
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="main_analysis.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
 </div>
@@ -129,7 +132,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">DSCI-522-Group-26-Hotel-Booking</h1>
+<h1 class="title">Predicting Hotel Booking Cancellations</h1>
 </div>
 
 
@@ -158,7 +161,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<div id="16b87f28" class="cell" data-execution_count="1">
+<div id="c9b13f4f" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Standard library</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> shutil</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
@@ -199,6 +202,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>    RocCurveDisplay,</span>
 <span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<section id="summary" class="level1">
+<h1>Summary</h1>
+<p>This project asked whether information known when a hotel booking is made can predict whether that booking will be cancelled. Using 119,390 bookings from two hotel types, the analysis found that logistic regression ranked cancellations substantially better than a majority-class baseline and could identify more cancellations than the baseline at the final held-out evaluation. The hotel could therefore use the model to prioritize bookings for cancellation-risk follow-up, while accepting a trade-off between catching cancellations and contacting bookings that remain active. The main limitations are that the study covers two hotels and a limited period, includes potentially duplicate records, uses a random rather than time-based test split, and chooses a threshold for equal precision and recall rather than hotel-specific costs.</p>
+</section>
+<section id="introduction" class="level1">
+<h1>Introduction</h1>
+<p>Hotel cancellations create uncertainty for room inventory, staffing, and revenue management. When a booking is cancelled after an inventory decision or guest-arrival plan has been made, the hotel may lose a room opportunity or spend resources on guests who are unlikely to cancel. A useful cancellation-prediction model could flag high-risk reservations for targeted communication, revised deposit or payment policies, or a carefully managed overbooking strategy. The value of such a model depends on both its ability to rank bookings by risk and the consequences of any intervention, because not every hotel action is appropriate for every false alarm.</p>
+<p>This report answers the following question: <strong>Can booking information available at reservation time predict whether a hotel booking will be cancelled, and how does changing the decision threshold affect the usefulness of the prediction?</strong> The question is actionable if the response variable is available for past bookings and the predictors are available before cancellation occurs. It is measurable with the available data because the response is a binary cancellation indicator and the predictors describe individual reservations.</p>
+<p>The Hotel Booking Demand dataset was originally published by Antonio, Almeida, and Nunes and is publicly distributed through Kaggle [1,2]. Each row represents one booking made for a city hotel or resort hotel. The original source contains 119,390 rows and variables describing booking timing, length of stay, guest composition, deposit and market information, previous cancellations, and customer characteristics [1,2]. The variables used in this analysis describe information available at or near the booking stage, while the following variables were excluded: reservation status and reservation status date reveal the final outcome; assigned room type, booking changes, and days in waiting list may reflect events after the initial booking. The target variable is whether the booking was cancelled, coded as 1 for cancellation and 0 for no cancellation. The target supports binary classification and is not evenly balanced: 44,224 bookings, or 37.0%, were cancelled. These features and the target are sufficient to evaluate whether past patterns can predict cancellation in a held-out booking sample.</p>
+</section>
 <section id="methods" class="level1">
 <h1>Methods</h1>
 <section id="overview-of-the-analysis" class="level2">
@@ -225,7 +238,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="download-raw-data" class="level2">
 <h2 class="anchored" data-anchor-id="download-raw-data">Download raw data</h2>
-<div id="40882961" class="cell" data-execution_count="2">
+<div id="9a80be0f" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>root <span class="op">=</span> Path.cwd().resolve()</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> root.name <span class="op">==</span> <span class="st">"analysis"</span>:</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    root <span class="op">=</span> root.parent</span>
@@ -251,7 +264,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="process-data" class="level2">
 <h2 class="anchored" data-anchor-id="process-data">Process data</h2>
-<div id="2c8a4481" class="cell" data-execution_count="3">
+<div id="a83a2ec2" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> df.drop(columns<span class="op">=</span>[</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"reservation_status"</span>,</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"reservation_status_date"</span>,</span>
@@ -315,7 +328,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell-output cell-output-stdout">
 <pre><code>Processed shape: (119390, 930)</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="3">
+<div class="cell-output cell-output-display" data-execution_count="16">
 <div>
 
 
@@ -477,12 +490,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="classification-analysis" class="level2">
 <h2 class="anchored" data-anchor-id="classification-analysis">Classification analysis</h2>
-<div id="408d9c83" class="cell" data-execution_count="4">
+<div id="a8093463" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>RANDOM_STATE <span class="op">=</span> <span class="dv">42</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <section id="traintest-split" class="level3">
 <h3 class="anchored" data-anchor-id="traintest-split">Train/test split</h3>
-<div id="79863b5b" class="cell" data-execution_count="5">
+<div id="e5f12c5b" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    X, y, test_size<span class="op">=</span><span class="fl">0.2</span>, stratify<span class="op">=</span>y, random_state<span class="op">=</span>RANDOM_STATE</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>)</span>
@@ -497,7 +510,7 @@ Cancellation rate (train): 0.370</code></pre>
 <section id="exploratory-analysis-of-the-training-set" class="level3">
 <h3 class="anchored" data-anchor-id="exploratory-analysis-of-the-training-set">Exploratory analysis of the training set</h3>
 <p>These descriptive plots use only <code>X_train</code> and <code>y_train</code>. They show the class balance and how cancellations vary by lead time, deposit type, hotel, and arrival month.</p>
-<div id="b8ce5003" class="cell" data-execution_count="6">
+<div id="8b1b0a26" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib.ticker <span class="im">import</span> PercentFormatter</span>
@@ -676,6 +689,10 @@ Cancellation rate (train): 0.370</code></pre>
 </div>
 </div>
 </div>
+<p><strong>Figure 1. Training-set cancellation balance.</strong> The plot compares the number and percentage of cancelled and not-cancelled bookings in the 80% training partition.</p>
+<p><strong>Figure 2. Cancellation rate by booking lead time.</strong> The bars show the observed cancellation rate within each lead-time interval.</p>
+<p><strong>Figure 3. Cancellation rate by deposit type.</strong> The bars compare observed cancellation rates across deposit categories.</p>
+<p><strong>Figure 4. Arrival-month cancellation pattern by hotel type.</strong> The heatmap shows cancellation rates for each arrival month in both hotel categories.</p>
 </section>
 <section id="models" class="level3">
 <h3 class="anchored" data-anchor-id="models">Models</h3>
@@ -684,7 +701,7 @@ Cancellation rate (train): 0.370</code></pre>
 <li><p><strong>Baseline (majority-class dummy classifier).</strong> This predicts “not cancelled” for every booking. It does not learn anything, but it gives a floor that any useful model must beat, and it shows why accuracy alone is misleading here (it already scores 63.0%).</p></li>
 <li><p><strong>Logistic regression.</strong> This is a standard, well-understood classifier for a binary outcome. It outputs a probability of cancellation for each booking, which we need in order to rank bookings by risk and to adjust the decision threshold. It trains quickly even with about 930 features, and its coefficients show which booking characteristics raise or lower cancellation risk, which makes the results easier to explain to a hotel manager. We used it as our main model because it is a strong, interpretable starting point for a tabular problem with many categorical variables.</p></li>
 </ul>
-<div id="2f538ef4" class="cell" data-execution_count="7">
+<div id="a3fb6643" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>models <span class="op">=</span> {</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Dummy (majority class)"</span>: make_pipeline(</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>        clone(preprocessor),</span>
@@ -699,7 +716,7 @@ Cancellation rate (train): 0.370</code></pre>
 </section>
 <section id="cross-validated-comparison-training-set-only" class="level3">
 <h3 class="anchored" data-anchor-id="cross-validated-comparison-training-set-only">Cross-validated comparison (training set only)</h3>
-<div id="12ed5c7b" class="cell" data-execution_count="8">
+<div id="9fd15f32" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>scoring <span class="op">=</span> {</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"accuracy"</span>: <span class="st">"accuracy"</span>,</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"precision"</span>: make_scorer(precision_score, zero_division<span class="op">=</span><span class="dv">0</span>),</span>
@@ -718,7 +735,7 @@ Cancellation rate (train): 0.370</code></pre>
 <span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>cv_results <span class="op">=</span> pd.DataFrame(cv_rows).set_index(<span class="st">"model"</span>).<span class="bu">round</span>(<span class="dv">3</span>)</span>
 <span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>cv_results</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="8">
+<div class="cell-output cell-output-display" data-execution_count="21">
 <div>
 
 
@@ -755,7 +772,7 @@ Cancellation rate (train): 0.370</code></pre>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">Logistic Regression</th>
-<td>0.826</td>
+<td>0.827</td>
 <td>0.806</td>
 <td>0.7</td>
 <td>0.749</td>
@@ -773,7 +790,7 @@ Cancellation rate (train): 0.370</code></pre>
 <section id="visualizing-cross-validation-performance" class="level3">
 <h3 class="anchored" data-anchor-id="visualizing-cross-validation-performance">Visualizing cross-validation performance</h3>
 <p>These mean scores are computed from cross-validation on the training set. Average precision is the model-selection metric; F1 is shown at the default threshold of 0.5.</p>
-<div id="5da9a5f6" class="cell" data-execution_count="9">
+<div id="c042860c" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="fl">4.5</span>))</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>cv_results[[<span class="st">"average_precision"</span>, <span class="st">"f1"</span>]].plot(</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    kind<span class="op">=</span><span class="st">"bar"</span>,</span>
@@ -797,10 +814,11 @@ Cancellation rate (train): 0.370</code></pre>
 </div>
 </div>
 </div>
+<p><strong>Figure 5. Training cross-validation performance.</strong> The bars compare average precision and F1 across the five training folds for the baseline and logistic regression.</p>
 </section>
 <section id="model-selection" class="level3">
 <h3 class="anchored" data-anchor-id="model-selection">Model Selection</h3>
-<div id="b6fba5a1" class="cell" data-execution_count="10">
+<div id="9701ec69" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Selection uses cross-validation only; the test set has not been touched yet.</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>selection_metric <span class="op">=</span> <span class="st">"average_precision"</span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -816,7 +834,7 @@ Cancellation rate (train): 0.370</code></pre>
 </section>
 <section id="threshold-selection-training-set-only" class="level3">
 <h3 class="anchored" data-anchor-id="threshold-selection-training-set-only">Threshold selection (training set only)</h3>
-<div id="f936d907" class="cell" data-execution_count="11">
+<div id="8d734715" class="cell" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Out-of-fold predicted probabilities on the training set</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>oof_proba <span class="op">=</span> cross_val_predict(</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    final_model, X_train, y_train, cv<span class="op">=</span><span class="dv">5</span>, method<span class="op">=</span><span class="st">"predict_proba"</span></span>
@@ -860,8 +878,8 @@ Cancellation rate (train): 0.370</code></pre>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">0.20</th>
 <td>0.616</td>
-<td>0.930</td>
-<td>0.741</td>
+<td>0.931</td>
+<td>0.742</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">0.25</th>
@@ -872,7 +890,7 @@ Cancellation rate (train): 0.370</code></pre>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">0.30</th>
 <td>0.693</td>
-<td>0.863</td>
+<td>0.864</td>
 <td>0.769</td>
 </tr>
 <tr class="even">
@@ -883,8 +901,8 @@ Cancellation rate (train): 0.370</code></pre>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">0.40</th>
-<td>0.753</td>
-<td>0.785</td>
+<td>0.752</td>
+<td>0.786</td>
 <td>0.769</td>
 </tr>
 <tr class="even">
@@ -908,20 +926,20 @@ Cancellation rate (train): 0.370</code></pre>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">0.60</th>
 <td>0.853</td>
-<td>0.607</td>
+<td>0.606</td>
 <td>0.709</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">0.65</th>
 <td>0.877</td>
-<td>0.561</td>
-<td>0.684</td>
+<td>0.560</td>
+<td>0.683</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">0.70</th>
 <td>0.903</td>
-<td>0.515</td>
-<td>0.656</td>
+<td>0.514</td>
+<td>0.655</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">0.75</th>
@@ -949,7 +967,7 @@ Cancellation rate (train): 0.370</code></pre>
 <section id="visualizing-the-training-threshold-trade-off" class="level3">
 <h3 class="anchored" data-anchor-id="visualizing-the-training-threshold-trade-off">Visualizing the training threshold trade-off</h3>
 <p>This plot uses out-of-fold predictions on the training set. The marker shows the threshold selected by training F1; it does not use the held-out test labels.</p>
-<div id="34a87f94" class="cell" data-execution_count="12">
+<div id="9314bbea" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="fl">4.5</span>))</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>threshold_table[[<span class="st">"precision"</span>, <span class="st">"recall"</span>, <span class="st">"f1"</span>]].plot(</span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    marker<span class="op">=</span><span class="st">"o"</span>,</span>
@@ -977,10 +995,11 @@ Cancellation rate (train): 0.370</code></pre>
 </div>
 </div>
 </div>
+<p><strong>Figure 6. Precision-recall trade-off across decision thresholds.</strong> The plot uses out-of-fold training predictions, and the vertical marker shows the threshold selected by training F1.</p>
 </section>
 <section id="final-evaluation-held-out-test-set-used-once" class="level3">
 <h3 class="anchored" data-anchor-id="final-evaluation-held-out-test-set-used-once">Final evaluation (held-out test set, used once)</h3>
-<div id="2cbc0fc1" class="cell" data-execution_count="13">
+<div id="9204a480" class="cell" data-execution_count="13">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> evaluate(model, X, y, threshold<span class="op">=</span><span class="fl">0.5</span>):</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>    proba <span class="op">=</span> model.predict_proba(X)[:, <span class="dv">1</span>]</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    pred <span class="op">=</span> (proba <span class="op">&gt;=</span> threshold).astype(<span class="bu">int</span>)</span>
@@ -1002,7 +1021,7 @@ Cancellation rate (train): 0.370</code></pre>
 <span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"</span><span class="sc">{</span>cv_best<span class="sc">}</span><span class="ss"> (</span><span class="sc">{</span>threshold<span class="sc">}</span><span class="ss">)"</span>: evaluate(final_model, X_test, y_test, threshold),</span>
 <span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>}).T.<span class="bu">round</span>(<span class="dv">3</span>)</span>
 <span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>test_results</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="13">
+<div class="cell-output cell-output-display" data-execution_count="26">
 <div>
 
 
@@ -1032,7 +1051,7 @@ Cancellation rate (train): 0.370</code></pre>
 <th data-quarto-table-cell-role="th">Logistic Regression (0.5)</th>
 <td>0.826</td>
 <td>0.808</td>
-<td>0.696</td>
+<td>0.697</td>
 <td>0.748</td>
 <td>0.907</td>
 <td>0.865</td>
@@ -1041,7 +1060,7 @@ Cancellation rate (train): 0.370</code></pre>
 <th data-quarto-table-cell-role="th">Logistic Regression (0.35)</th>
 <td>0.818</td>
 <td>0.726</td>
-<td>0.818</td>
+<td>0.817</td>
 <td>0.769</td>
 <td>0.907</td>
 <td>0.865</td>
@@ -1058,6 +1077,8 @@ Cancellation rate (train): 0.370</code></pre>
 </section>
 <section id="results" class="level1">
 <h1>Results</h1>
+<p>Figures 1 through 4 summarize the training-set cancellation patterns that motivated the modelling analysis. Figure 1 establishes the class imbalance, while Figures 2 through 4 show how cancellation rates vary by lead time, deposit type, arrival month, and hotel type. Table 1 and Figure 5 compare the model candidates, and Table 2 and Figure 6 describe the threshold trade-off before the final held-out evaluation in Table 3.</p>
+<p>The main finding is that booking attributes can support useful cancellation-risk ranking even though the majority-class baseline has misleadingly high accuracy. The held-out results show that the selected logistic regression model outperforms the baseline across the threshold-dependent and threshold-independent metrics, and that lowering the decision threshold changes the balance between missed cancellations and false alarms.</p>
 <section id="model-comparison" class="level2">
 <h2 class="anchored" data-anchor-id="model-comparison">Model comparison</h2>
 <p>Table 1 shows the 5-fold cross-validation results on the training set. The baseline reaches 63.0% accuracy only by predicting that no booking cancels, so its precision, recall and F1 are all 0, its ROC-AUC is 0.500 (no discrimination) and its AP of 0.370 equals the cancellation rate. Logistic regression is far better on every measure, with an AP of 0.868, a ROC-AUC of 0.908 and an F1 of 0.749. Because AP was our selection metric, logistic regression was selected as the final model.</p>
@@ -1077,6 +1098,8 @@ Cancellation rate (train): 0.370</code></pre>
 </section>
 <section id="discussion" class="level1">
 <h1>Discussion</h1>
+<p>These results answer the stated question by showing that information available at booking time can identify likely cancellations, and that the useful threshold depends on the hotel’s operational priorities. The findings are consistent with the training patterns in Figures 1 through 4, where cancellation frequency varies across booking lead time, deposit type, and temporal or hotel characteristics. It was reasonable to expect some ranking advantage over the baseline because cancellation behavior differs across these booking attributes, although the size of the difference at held-out evaluation was favorable.</p>
+<p>The real-world meaning is that a hotel could use the model to rank reservations by cancellation risk rather than making a binary decision about every booking. At the 0.5 threshold, the model catches fewer cancellations but is more certain that a flagged booking is likely to cancel. At 0.35, it catches more cancellations but also flags more bookings that remain active. This makes the threshold decision a business question: the hotel should prefer the lower threshold if a missed cancellation is more costly, and the higher threshold if unnecessary intervention or a false alarm is more costly.</p>
 <section id="limitations" class="level2">
 <h2 class="anchored" data-anchor-id="limitations">Limitations</h2>
 <ul>
@@ -1085,7 +1108,17 @@ Cancellation rate (train): 0.370</code></pre>
 <li>The dataset contains duplicate rows, and copies may appear in both the training and test sets, so the scores may be slightly optimistic.</li>
 <li>The data come from two hotels over a limited time period, and we used a random split rather than a time-based split. Performance on future bookings, or at other hotels, may be lower.</li>
 </ul>
+<p>If deployed, the model could affect guest communication, staffing, inventory control, and revenue-management decisions. At a lower threshold, a hotel may contact more at-risk guests or hold inventory more conservatively, but it will also spend resources on bookings that would have remained active. A higher threshold reduces this false-alert burden but misses more cancellations. The appropriate operating point should therefore be based on documented cancellation costs and the cost of intervention, rather than F1 alone [4,5].</p>
+<p>Future work could compare time-based validation with the random split, repeat the analysis after carefully removing duplicate records, and test nonlinear or cost-sensitive models. It could also estimate expected profit or room opportunity cost for each threshold, add pricing and inventory information, and evaluate whether the model remains accurate for a later period or a hotel outside this dataset [1,3,5].</p>
 </section>
+</section>
+<section id="references" class="level1">
+<h1>References</h1>
+<p>[1] Antonio, N., Almeida, A., &amp; Nunes, L. (2019). Hotel booking demand datasets. <em>Data in Brief, 22</em>, 41-49. https://doi.org/10.1016/j.dib.2019.01.003</p>
+<p>[2] Mostipak, J. (2020). Hotel booking demand. Kaggle. https://www.kaggle.com/datasets/jessemostipak/hotel-booking-demand</p>
+<p>[3] Scikit-learn developers. (n.d.). Cross-validation: evaluating estimator performance. https://scikit-learn.org/stable/modules/cross_validation.html</p>
+<p>[4] Scikit-learn developers. (n.d.). Logistic regression. https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html</p>
+<p>[5] Hastie, T., Tibshirani, R., &amp; Friedman, J. (2009). <em>The Elements of Statistical Learning: Data Mining, Inference, and Prediction</em> (2nd ed.). Springer. https://doi.org/10.1007/978-0-387-84858-7</p>
 </section>
 
 </main>

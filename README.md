@@ -118,8 +118,10 @@ The data is obtained from the [Hotel Booking Demand dataset on Kaggle](https://w
 
 ## AI use statement
 
-Generative AI was not used in creation of this report.
+Claude Sonnet 5.5 (Anthropic) and ChatGPT (OpenAI) were used to proofread this report and to suggest code syntax for threshold selection and uv environment setup. All outputs were reviewed and verified by the authors, who take full responsibility for the final content. Example prompts used during development include:
 
-No instruction file such as `CLAUDE.md` or `.github/copilot-instructions.md` is currently committed to this repository. Example prompts used during development include:
+- Proofread this section for grammar and clarity. Keep technical terms and meaning unchanged, and list your changes.
 
--
+- Suggest scikit-learn syntax to select the F1-maximizing classification threshold on a validation set.
+
+- Suggest how to safely change the >= dependency constraints in my pyproject.toml to exact == versions that match my current uv environment, and update the project version.

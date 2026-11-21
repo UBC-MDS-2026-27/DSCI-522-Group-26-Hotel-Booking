@@ -1,13 +1,16 @@
 [project]
 name = "DSCI-522-Group-26-Hotel-Booking"
-version = "0.1.0"
+version = "0.0.1"
 requires-python = "==3.14.7"
 dependencies = [
-    "jupyter>=1.1.1",
-    "kagglehub>=1.0.3",
-    "matplotlib>=3.11.2",
-    "pandas>=3.1.1",
-    "scikit-learn>=1.9.1",
-    "scipy>=1.18.1",
-    "seaborn>=0.13.2",
+    "jupyter==1.1.1",
+    "kagglehub==1.0.3",
+    "matplotlib==3.11.2",
+    "pandas==3.1.1",
+    "scikit-learn==1.9.1",
+    "scipy==1.18.1",
+    "seaborn==0.13.2",
 ]
+[tool.uv]
+# `uv add` writes an exact version (==)
+add-bounds = "exact"
