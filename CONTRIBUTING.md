@@ -52,35 +52,257 @@ Please do not include Kaggle credentials, API tokens, or other private informati
 
 ## Submitting your work
 
-We use the standard fork-and-pull-request workflow.
+Team members use branches in the shared project repository, not
+personal forks. Each change must go through a pull request reviewed
+and approved by at least one other team member before merging.
 
-1. **Fork** the repository to your own GitHub account, then **clone** your fork:
-   ```bash
-   git clone https://github.com/<your-username>/<repository-name>.git
-   cd <repository-name>
-   ```
-   (Use your own GitHub username and the name of this repository.)
-2. **Create a branch** from `main` for your work. Use a short, descriptive name, for example `fix-threshold-table-typo`:
-   ```bash
-   git checkout -b fix-threshold-table-typo
-   ```
-3. **Make your changes.** Keep each pull request focused on one topic. See [Project conventions](#project-conventions) below.
-4. **Run the analysis from start to finish** to confirm that it still runs and that any numbers quoted in the written report still match the code output. If your change alters results, update the text and tables that report them.
-5. **Commit** your changes with clear messages that say what changed and why:
-   ```bash
-   git add .
-   git commit -m "Fix typo in threshold selection table caption"
-   ```
-6. **Push** your branch to your fork:
-   ```bash
-   git push origin fix-threshold-table-typo
-   ```
-7. **Open a pull request** against the `main` branch of this repository. In the description:
-   - Summarize what you changed and why.
-   - Link the related issue, if any (for example, "Closes #12").
-   - Note whether results or figures changed.
-   - Include the AI disclosure described in the [AI policy](#ai-policy), if it applies.
-8. **Respond to review.** A maintainer will review your pull request and may ask for changes. Please address comments by pushing additional commits to the same branch. A maintainer will merge the pull request once it is approved.
+### Initial setup
+
+Follow [How to run the analysis](README.md#how-to-run-the-analysis)
+in the README first. It covers installing the prerequisites,
+cloning the repository, preparing the SSH key and Git configuration,
+and downloading the Docker image.
+
+Install [Positron](https://positron.posit.co/download.html).
+Remote SSH is included in Positron.
+
+Check your Git identity on your computer before starting the container:
+
+```bash
+git config --global user.name
+git config --global user.email
+```
+
+If either value is missing, follow the Git configuration instructions
+in the README. The container mounts your Git configuration so that
+commits are attributed to you.
+
+### Create a task branch
+
+From the repository root on your computer, start with a clean
+working tree and update main:
+
+```bash
+git switch main
+git pull --ff-only origin main
+git switch -c describe-your-change
+```
+
+Replace `describe-your-change` with a meaningful branch name, such
+as `improve-report-captions`. Keep each branch focused on one task.
+
+### Work in the container using Positron
+
+We develop in the same Docker environment used to run the analysis.
+From the repository root on your computer, start the container:
+
+```bash
+docker compose up -d
+docker compose ps
+```
+
+Confirm that the `analysis-env` service is running.
+
+In Positron, open the Command Palette with `Ctrl+Shift+P` on
+Windows or `Cmd+Shift+P` on macOS. Run
+**Remote SSH: Show Remote Menu**, choose **Connect to Host**,
+and enter:
+
+```text
+root@localhost:2222
+```
+
+If prompted for the remote platform, choose Linux. For the expected
+local container, confirm the host fingerprint when prompted.
+The first connection may take several minutes while Positron
+installs its remote server.
+
+In the new remote window, select **Open Folder** and open:
+
+```text
+/workspace
+```
+
+This folder is mounted from your local project directory.
+Edits inside `/workspace` also change the files on your computer.
+
+Select the project Python interpreter from the interpreter menu.
+Use **New Console Session** and choose the interpreter at:
+
+```text
+/opt/venv/bin/python
+```
+
+If it is not listed, use **Python: Select Interpreter** from the
+Command Palette, select **Enter interpreter path**, and enter
+that path. Do not select `/usr/bin/python3` or `/workspace/.venv`.
+
+Check the interpreter in the Python Console:
+
+```python
+import sys
+print(sys.executable)
+```
+
+The output should be `/opt/venv/bin/python`.
+
+Edit and run the project in this remote window. To render the
+HTML report, run the following in its terminal from `/workspace`:
+
+```bash
+uv run quarto render analysis/main_analysis.qmd --to html
+```
+
+Alternatively, from the repository root in a terminal on your
+computer, render without opening an SSH session:
+
+```bash
+docker compose run --rm analysis-env uv run quarto render analysis/main_analysis.qmd --to html
+```
+
+After finishing, close the remote Positron window and stop the
+container from a terminal on your computer:
+
+```bash
+docker compose down
+```
+
+### Troubleshoot the connection
+
+If Docker cannot connect to its engine, start Docker Desktop and
+wait until the engine is running.
+
+If SSH asks for a password, check that
+`~/.ssh/id_ed25519.pub` is a file and that its path matches the
+mount in `docker-compose.yml`. The key used by your SSH client
+must correspond to this public key.
+
+If `~/.ssh/id_ed25519.pub` or `~/.gitconfig` is a directory,
+Docker may have created it because the source file was missing.
+Stop the container with `docker compose down`. Inspect the
+directory before removing it, then create the correct file using
+the README instructions and start the container again.
+
+If a host identification warning appears after intentionally
+recreating the local container, remove the old local host entry:
+
+```bash
+ssh-keygen -R "[localhost]:2222"
+```
+
+Reconnect and confirm the new fingerprint for the expected
+local container.
+
+If port 2222 is already occupied, choose an unused host port in
+`docker-compose.yml`, such as `"2223:22"`, and connect to
+`root@localhost:2223`.
+
+If GitHub authentication is requested when pushing, complete
+the sign-in process yourself. Never put credentials in project
+files or issues.
+
+### Add or update dependencies
+
+Make dependency changes on a task branch inside the container.
+Use `uv add` with an exact version specification. For example,
+replace the package name and version in the following command
+with the dependency you actually need:
+
+```bash
+uv add "package-name==X.Y.Z"
+```
+
+Commit the changed `pyproject.toml` and `uv.lock` together.
+Include `.python-version` if the Python version also changes.
+Explain the reason for the dependency change in the pull request.
+
+After pushing, wait for the **Publish image to Docker Hub**
+GitHub Actions workflow to finish successfully. It publishes
+the updated image and commits its new SHA tag to
+`docker-compose.yml` on the same branch.
+
+Save and commit your work, then close the remote Positron window.
+In the repository root on your computer, retrieve the automated
+commit and recreate the container using the new image:
+
+```bash
+git pull --ff-only
+docker compose pull
+docker compose down
+docker compose up -d
+```
+
+Reconnect Positron and verify the updated environment. Submit
+the branch for review.
+
+After the pull request is merged and the workflow on main
+finishes, every team member should update their clean local main
+branch and download the image again:
+
+```bash
+git switch main
+git pull --ff-only origin main
+docker compose pull
+```
+
+Recreate any running container before continuing development
+with the new image.
+
+### Update the published report
+
+Edit the source report at `analysis/main_analysis.qmd`, rather
+than editing generated HTML directly.
+
+Keep the HTML settings `embed-resources: true` and
+`format-links: false` so the published copy includes its figures
+and does not contain broken links to other output formats.
+
+After rendering the HTML report, copy it to the publication
+directory from the repository root:
+
+```bash
+mkdir -p docs
+cp analysis/main_analysis.html docs/index.html
+touch docs/.nojekyll
+```
+
+Open `docs/index.html` in a browser and check the text, tables,
+and figures. Commit the report source, rendered report, and
+publication copy together when they change.
+
+GitHub Pages must be configured to deploy from the `main` branch
+and `/docs` folder. Once that setup is in place, the published
+copy updates after the reviewed changes are merged into main.
+
+### Commit, push, and request review
+
+Review your changes and stage only the intended files. For a
+report update, for example:
+
+```bash
+git diff
+git add analysis/main_analysis.qmd analysis/main_analysis.html docs/index.html docs/.nojekyll
+git diff --cached --stat
+git commit -m "Update report and published HTML"
+git push -u origin HEAD
+```
+
+Use file paths and a commit message appropriate to your actual
+task. Do not commit `.venv`, credentials, caches, or unrelated
+generated files.
+
+Open a pull request into main yourself. Describe what changed,
+link the related issue, explain how you checked the work, and
+include any disclosure required by the AI policy below.
+
+For analysis changes, render the report in the container and
+confirm that reported results match the output. For documentation
+changes, check links and verify the affected instructions.
+
+Address review comments by adding commits to the same branch.
+At least one other team member must review and approve the pull
+request before it is merged. Issues, pull requests, reviews,
+and merging are handled by people.
 
 ## Project conventions
 
@@ -130,3 +352,10 @@ The AI policy section above was written with reference to the AI policies of oth
 The structure of this document (reporting bugs, suggesting changes, and submitting work through forks and pull requests) follows common open-source practice, as seen in the contributing guides of projects such as [Altair](https://github.com/altair-viz/altair/blob/master/CONTRIBUTING.md) and [dplyr](https://github.com/tidyverse/dplyr/blob/master/.github/CONTRIBUTING.md).
 
 The dataset used in this project is the [Hotel Booking Demand dataset](https://www.kaggle.com/datasets/jessemostipak/hotel-booking-demand) on Kaggle; please follow its license and terms of use when contributing.
+
+The container development instructions were adapted from the
+[DSCI 522 Milestone 2 guide](https://ubc-mds.github.io/DSCI_522_dsci-workflows_students/assignments/milestone2.html)
+and the
+
+[Breast Cancer Predictor contributing guide, version 1.0.0](https://github.com/UBC-MDS/DSCI_522_project-template-breast-cancer-predictor/blob/1.0.0/CONTRIBUTING.md),
+with paths and commands adapted for this project.
