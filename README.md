@@ -70,37 +70,106 @@ The raw and processed CSV files are created by the analysis when it is rendered.
 
 ## How to run the analysis
 
-1. Install Git, Python 3.14.7, `uv`, and [Quarto](https://quarto.org/docs/get-started/).
-2. Clone the repository and enter it:
+Install [Git](https://git-scm.com/downloads) and
+[Docker Desktop](https://www.docker.com/products/docker-desktop/).
+Start Docker Desktop and wait until the Docker engine is running.
+Python, uv, Quarto, and the analysis packages are provided inside
+the container; they do not need to be installed separately on
+your computer.
 
-   ```powershell
-   git clone https://github.com/UBC-MDS-2026-27/DSCI-522-Group-26-Hotel-Booking.git
-   cd DSCI-522-Group-26-Hotel-Booking
-   ```
+Run the following commands in Git Bash on Windows or Terminal
+on macOS.
 
-3. From the repository root, create or update the project environment and install the dependencies:
+### Clone the repository
 
-   ```powershell
-   uv sync
-   ```
+```bash
+git clone https://github.com/UBC-MDS-2026-27/DSCI-522-Group-26-Hotel-Booking.git
+cd DSCI-522-Group-26-Hotel-Booking
+```
 
-4. Render the main report:
+Run all remaining commands from this repository directory.
 
-   ```powershell
-   uv run quarto render analysis/main_analysis.qmd --to html
-   ```
+### Prepare the mounted configuration files
 
-The rendered report is written to `analysis/main_analysis.html`. Rendering executes the Python code chunks, downloads the source dataset with `kagglehub`, and creates `data/raw/hotel_bookings.csv` and `data/processed/hotel_bookings_processed.csv`. An internet connection is required for the initial dataset download.
+The container mounts your SSH public key and Git configuration.
+Check whether these files already exist:
 
-In an editor such as Positron or Visual Studio Code, select the `.venv` Python environment created by `uv` if you run the notebook or Python code interactively.
+```bash
+ls -l ~/.ssh/id_ed25519.pub ~/.gitconfig
+```
+
+If you do not already have an SSH key at that location, generate
+one:
+
+```bash
+ssh-keygen -t ed25519
+```
+
+Accept the default file location. Follow the prompts to choose a
+passphrase or leave it empty. Do not overwrite an existing key.
+
+Check your Git identity:
+
+```bash
+git config --global user.name
+git config --global user.email
+```
+
+If either value is missing, set it using your own name and email:
+
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+```
+
+### Download the project environment
+
+```bash
+docker compose pull
+```
+
+Docker Compose downloads the image specified in
+[`docker-compose.yml`](docker-compose.yml), pinned to a commit-SHA
+tag. Use the configured tag rather than replacing it with `latest`.
+
+### Render the report
+
+```bash
+docker compose run --rm analysis-env uv run quarto render analysis/main_analysis.qmd --to html
+```
+
+This command executes the analysis inside the container. It
+downloads the dataset from Kaggle, saves the original CSV to
+`data/raw/hotel_bookings.csv`, writes the processed data to
+`data/processed/hotel_bookings_processed.csv`, and generates
+`analysis/main_analysis.html`.
+
+An internet connection is required to download the Docker image
+and dataset. Open `analysis/main_analysis.html` in a web browser
+to read the report. Its figures and styles are embedded in the
+HTML file.
+
+The `--rm` option automatically removes the temporary container
+when rendering finishes. The report and data remain in your local
+project directory because it is mounted into the container.
+
+For editing the project, connecting Positron to the container,
+or updating dependencies, see
+[`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Dependencies
 
-The Python dependencies are listed in [`pyproject.toml`](pyproject.toml). The project uses Python 3.14.7 and `uv`; Quarto is required to render the report. The analysis dependencies include `kagglehub`, `pandas`, `numpy`, `scipy`, `matplotlib`, `seaborn`, `scikit-learn`, and `jupyter`. Quarto and `uv` are external tools rather than Python packages in `pyproject.toml`.
+The reproducible environment is defined by
+[`Dockerfile`](Dockerfile),
+[`docker-compose.yml`](docker-compose.yml),
+[`pyproject.toml`](pyproject.toml),
+[`uv.lock`](uv.lock), and
+[`.python-version`](.python-version).
 
-## Dataset source
-
-The data is obtained from the [Hotel Booking Demand dataset on Kaggle](https://www.kaggle.com/datasets/jessemostipak/hotel-booking-demand/data) using `kagglehub`.
+The Docker image supplies Python, uv, Quarto, and the required
+Python packages. Exact direct Python dependency versions are
+listed in `pyproject.toml`, and resolved dependency versions are
+recorded in `uv.lock`.
 
 ## Limitations
 
