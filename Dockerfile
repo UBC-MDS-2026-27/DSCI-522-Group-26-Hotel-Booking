@@ -39,7 +39,8 @@ RUN uv sync --locked
 
 # On a Linux laptop, remove the # from the next line.
 # (sshd wants root to own the key file, but on Linux the mounted one is yours.)
-# RUN echo "StrictModes no" > /etc/ssh/sshd_config.d/container.conf
+# Comment out line 43 for Mac users
+RUN echo "StrictModes no" > /etc/ssh/sshd_config.d/container.conf
 
 # Start the ssh server when the container starts.
 # -D keeps it in the foreground, so the container keeps running.
